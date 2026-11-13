@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>網頁天堂｜Enjoy Lineage</title>
+<link rel="icon" href="data:,">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; color: #eee; background: #0b0906; }
+.hero { min-height: 72vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  background: linear-gradient(rgba(0,0,0,.25), rgba(11,9,6,1)), url(bg.jpg) center / cover; padding: 30px 16px; }
+h1 { font-size: clamp(34px, 8vw, 64px); margin: 0; color: #f0d48a; letter-spacing: 6px; text-shadow: 0 0 18px #000, 2px 2px 0 #3b2a10; }
+.sub { color: #d8c79a; margin: 10px 0 26px; font-size: 16px; text-shadow: 0 0 8px #000; }
+.btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.btn { display: inline-block; min-width: 150px; padding: 13px 22px; font-size: 18px; text-decoration: none; color: #1a1308;
+  background: linear-gradient(#f3d98f, #c9a24a); border: 1px solid #6b5220; border-radius: 4px; box-shadow: 0 2px 10px #000; }
+.btn.ghost { color: #f0d48a; background: rgba(20,16,10,.85); border-color: #8a7140; }
+.btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+.status { margin-top: 18px; font-size: 14px; color: #cfc4a4; text-shadow: 0 0 6px #000; min-height: 1.3em; }
+.status b { color: #8f8; } .status .off { color: #f88; }
+main { max-width: 860px; margin: 0 auto; padding: 10px 16px 50px; }
+section { background: rgba(30, 24, 14, .85); border: 1px solid #3d321c; padding: 16px 18px; margin: 16px 0; }
+h2 { color: #e8c97a; font-size: 19px; margin: 0 0 10px; }
+ul { margin: 0; padding-left: 20px; line-height: 1.9; }
+.news li span { color: #998a66; margin-right: 8px; font-size: 13px; }
+kbd { background: #2a2216; border: 1px solid #5a4a2a; padding: 0 5px; border-radius: 3px; font-family: inherit; }
+footer { text-align: center; color: #6f6550; font-size: 12px; padding: 20px; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>網頁天堂</h1>
+  <div class="sub">天堂一代 3.80C・打開瀏覽器就能玩・手機電腦都可以</div>
+  <div class="btns">
+    <a class="btn" id="play" aria-disabled="true" href="#">開始遊戲</a>
+    <a class="btn ghost" id="reg" aria-disabled="true" href="#">註冊帳號</a>
+  </div>
+  <div class="status" id="status">正在連線伺服器…</div>
+</div>
+<main>
+  <section class="news">
+    <h2>公告</h2>
+    <ul>
+      <li><span>2026/11/13</span>網頁天堂開放測試！註冊需要邀請碼，請向管理員索取。</li>
+      <li><span>2026/11/13</span>新角色從隱藏之谷（新手村）出發，記得先跟「新手導師」說話領取幫助。</li>
+    </ul>
+  </section>
+  <section>
+    <h2>怎麼玩</h2>
+    <ul>
+      <li>點地板走路、點怪物攻擊（電腦按住 <kbd>Ctrl</kbd> 點＝強制攻擊）、點 NPC 對話、點地上的東西撿起來</li>
+      <li>右下角：背包、魔法、狀態；最下面一排 F5～F12 是快捷鍵，把背包的藥水或魔法拖上去</li>
+      <li>聊天：開頭打 <kbd>!</kbd> 大喊、<kbd>&amp;</kbd> 全體、<kbd>#</kbd> 隊伍頻道、<kbd>"名字 內容</kbd> 密語</li>
+      <li>指令：<kbd>/組隊 名字</kbd>、<kbd>/交易</kbd>（要面對面）、<kbd>/轉向</kbd>、<kbd>/離隊</kbd>、<kbd>/記憶 名字</kbd></li>
+    </ul>
+  </section>
+  <section>
+    <h2>注意事項</h2>
+    <ul>
+      <li>這是朋友之間的私人測試伺服器，不收費、不販售任何東西</li>
+      <li>伺服器每天晚上 23:00 會重新開機維護約 5 分鐘</li>
+    </ul>
+  </section>
+</main>
+<footer>Enjoy Lineage 888 ・ 私人測試伺服器</footer>
+<script>
+// 遊戲伺服器的網址每次重開機會換：從 server.json 讀當下的網址（家裡的電腦開機後會自動更新這個檔）
+const $ = id => document.getElementById(id);
+async function boot() {
+  let base = '';
+  try { const j = await (await fetch('server.json?t=' + Date.now(), { cache: 'no-store' })).json(); base = (j.url || '').replace(/\/$/, ''); } catch (e) { }
+  if (!base) { $('status').innerHTML = '<span class="off">伺服器維護中，請稍後再來</span>'; return; }
+  $('play').href = base + '/'; $('reg').href = base + '/register';
+  try {
+    const s = await (await fetch(base + '/api/status', { cache: 'no-store' })).json();
+    $('play').removeAttribute('aria-disabled'); $('reg').removeAttribute('aria-disabled');
+    $('status').innerHTML = s.ok ? `伺服器 <b>運作中</b>・目前線上 ${s.online} 人` : '伺服器運作中';
+  } catch (e) {
+    $('status').innerHTML = '<span class="off">伺服器正在重新開機，約 5 分鐘後再試</span>';
+    setTimeout(boot, 30000);
+  }
+}
+boot();
+</script>
+</body>
+</html>
